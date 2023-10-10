@@ -1,0 +1,311 @@
+## Prompt for Level 1 ---------------------------------------------------------------------------------------------------------
+
+ Your task is to implement a simplified version of a banking system.
+
+ Initially, the banking system does not contain any accounts, so implement operations to allow accounts creation as well as making deposits.
+
+ _Operations:_
+
+ ```CREATE_ACCOUNT <accountId>```
+ - Should create a new account with the given identifier if it doesn't already exist.
+ - Returns "true" if an account was successfully created,
+ - Returns "false" if an account with `accountId` already exists.
+
+ ```DEPOSIT <accountId> <amount>```
+ - Should deposit the given `amount` of money to the specified account `accountId`
+ - Returns the total amount of money in the account after the query has been processed.
+ - If the specified account doesn't exist, it should return -1.
+
+ **Example:** These inputs are provided as an example of how the input data can be structured, you may select
+ any of these formats or come up with your own one.
+
+ #### Array
+ ```
+ operations = [
+ ["CREATE_ACCOUNT", "account1"],
+ ["CREATE_ACCOUNT", "account1"],
+ ["CREATE_ACCOUNT", "account2"],
+ ["DEPOSIT", "non-existing", "2700"],
+ ["DEPOSIT", "account1", "2700"]
+ ]
+ ```
+
+ #### JSON
+ ```
+ {
+ "operations": [
+ {
+ "operation": "CREATE_ACCOUNT",
+ "account_id": "account1"
+ },
+ {
+ "operation": "CREATE_ACCOUNT",
+ "account_id": "account1"
+ },
+ {
+ "operation": "CREATE_ACCOUNT",
+ "account_id": "account2"
+ },
+ {
+ "operation": "DEPOSIT",
+ "account_id": "non-existing",
+ "amount": 2700
+ },
+ {
+ "operation": "DEPOSIT",
+ "account_id": "account1",
+ "amount": 2700
+ }
+ ]
+ }
+ ```
+
+ #### CSV
+ ```
+ CREATE_ACCOUNT,account1
+ CREATE_ACCOUNT,account1
+ CREATE_ACCOUNT,account2
+ DEPOSIT,non-existing,2700
+ DEPOSIT,account1,2700
+ ```
+
+ The output should be
+ ```
+ true
+ false
+ true
+ -1
+ 2700
+ ```
+ ***/
+
+/**
+
+ 1. CREATE ACCOUNT -> return true if made, or return false if exists
+ 2. DEPOSIT -> Existing, return updated balance, or -1 if non-existent
+
+ */
+
+/***
+ ## Prompt for Level 2 ---------------------------------------------------------------------------------------------------------
+
+ On your existing implementation, please implement a new functionality that would support transferring of funds from one account to another.
+
+ _Operation:_
+
+ `TRANSFER <fromId> <toId> <amount>`
+
+ This should transfer the given amount of money from account with `fromId` to account with `toId`.
+
+ - Returns the balance of `fromId` if the transfer was successful, or -1 otherwise.
+ - Returns -1 if `fromId` or `toId` doesn't exist.
+ - Returns -1 if `fromId` and `toId` are the same.
+ - Returns -1 if funds on the account `fromId` are insufficient to perform the transfer.
+
+ **Example:** These inputs are provided as an example of how the input data can be structured, you may select
+ any of these formats or come up with your own one. Note: these operations below are in addition to those in Level 1
+
+ #### Array
+ ```
+ operations = [
+ ...
+ ["TRANSFER", "account1", "account2", "2701"],
+ ["TRANSFER", "account1", "account2", "200"]
+ ]
+ ```
+
+ #### JSON
+ ```
+ {
+ "operations": [
+ ...
+ {
+ "operation": "TRANSFER",
+ "account_id": "account1",
+ "to_account_id": "account2",
+ "amount": 2701
+ },
+ {
+ "operation": "TRANSFER",
+ "account_id": "account1",
+ "to_account_id": "account2",
+ "amount": 200
+ }
+ ]
+ }
+ ```
+
+ #### CSV
+ ```
+ ...
+ TRANSFER,account1,account2,2701
+ TRANSFER,account1,account2,200
+ ```
+
+ The output should be
+ ```
+ true
+ false
+ true
+ -1
+ 2700
+ -1
+ 2500
+ ```
+ ***/
+
+/***
+ ## Prompt for Level 3 ---------------------------------------------------------------------------------------------------------
+
+ On your existing implementation, please implement a new functionality that would allow a user to identify the top N accounts with the most overall activity.
+
+ _Operation:_
+
+ `TOP_ACTIVITY <n>`
+
+ This should return the identifiers of `n` most active accounts in descending order of financial activity indicator, In case of a tie, sorted alphabetically by `accountId` in ascending order.
+ - The returned value should be an array of identifiers in the format
+
+ ```
+ <accountId_1>(<activity_indicator_1>),
+ <accountId_2>(<activity_indicator_2>),
+ ...,
+ <accoundId_n>(<activity_indicator_n>)
+ ```
+ - Financial activity indicator is defined as the sum of all transactions for an account including the money deposited and/or successfully transferred. Unsuccessful transactions are not included.
+ - If less than n accounts exist in the system, then return all their identifiers (in the described format).
+
+ **Example:** These inputs are provided as an example of how the input data can be structured, you may select any of these formats or come up with your own one. Note: these operations below are in addition to those in Level 2
+
+ #### Array
+ ```
+ operations = [
+ ...
+ ["TRANSFER", "account1", "account2", "2500"],
+ ["DEPOSIT", "account2", "300"],
+ ["CREATE_ACCOUNT", "account3"],
+ ["DEPOSIT", "account3", "4000"],
+ ["TOP_ACTIVITY", "3"],
+ ["DEPOSIT", "account2", "1000"],
+ ["TOP_ACTIVITY", "2"],
+ ["TOP_ACTIVITY", "5"]
+ ]
+ ```
+
+ #### JSON
+ ```
+ {
+ "operations": [
+ ...
+ {
+ "operation": "TRANSFER",
+ "account_id": "account1",
+ "to_account_id": "account2",
+ "amount": 2500
+ },
+ {
+ "operation": "DEPOSIT",
+ "account_id": "account2",
+ "amount": 300
+ },
+ {
+ "operation": "CREATE_ACCOUNT",
+ "account_id": "account3"
+ },
+ {
+ "operation": "DEPOSIT",
+ "account_id": "account3",
+ "amount": 4000
+ },
+ {
+ "operation": "TOP_ACTIVITY",
+ "num_accounts": 3
+ },
+ {
+ "operation": "DEPOSIT",
+ "account_id": "account2",
+ "amount": 1000
+ },
+ {
+ "operation": "TOP_ACTIVITY",
+ "num_accounts": 2
+ },
+ {
+ "operation": "TOP_ACTIVITY",
+ "num_accounts": 5
+ }
+ ]
+ }
+ ```
+
+ #### CSV
+
+ ```
+ ...
+ TRANSFER,account1,account2,2500
+ DEPOSIT,account2,,300
+ CREATE_ACCOUNT,account3
+ DEPOSIT,account3,,4000
+ TOP_ACTIVITY,,,3
+ DEPOSIT,account2,,1000
+ TOP_ACTIVITY,,,2
+ TOP_ACTIVITY,,,5
+ ```
+ The output should be
+ ```
+ true
+ false
+ true
+ -1
+ 2700
+ -1
+ 2500
+ 0
+ 3000
+ true
+ 4000
+ ["account1(5400)", "account3(4000)", "account2(3000)"]
+ 4000
+ ["account1(5400)", "account2(4000)"]
+ ["account1(5400)", "account2(4000)", "account3(4000)"]
+ ```
+ ***/
+
+ Full output with ALL test cases included
+
+ All test cases:
+
+ String[][] operations = {
+         {"CREATE_ACCOUNT", "account1"},
+         {"CREATE_ACCOUNT", "account1"},
+         {"CREATE_ACCOUNT", "account2"},
+         {"DEPOSIT", "non-existing", "2700"},
+         {"DEPOSIT", "account1", "2700"},
+         {"TRANSFER", "account1", "account2", "2701"},
+         {"TRANSFER", "account1", "account2", "200"},
+         {"TRANSFER", "account1", "account2", "2500"},
+         {"DEPOSIT", "account2", "300"},
+         {"CREATE_ACCOUNT", "account3"},
+         {"DEPOSIT", "account3", "4000"},
+         {"TOP_ACTIVITY", "3"},
+         {"DEPOSIT", "account2", "1000"},
+         {"TOP_ACTIVITY", "2"},
+         {"TOP_ACTIVITY", "5"}
+ };
+
+ Expected output:
+    true
+    false
+    true
+    -1
+    2700
+    -1
+    2500
+    0
+    3000
+    true
+    4000
+    ["account1(5400)", "account3(4000)", "account2(3000)"]
+    4000
+    ["account1(5400)", "account2(4000)"]
+    ["account1(5400)", "account2(4000)", "account3(4000)"]

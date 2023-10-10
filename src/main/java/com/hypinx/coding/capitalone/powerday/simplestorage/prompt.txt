@@ -1,0 +1,240 @@
+## Prompt for Level 1
+
+Your task is to implement a simplified version of a simple storage system.
+
+Level 1: The simple storage system should support adding files as well as deleting files.
+
+_Operations_:
+
+```ADD_FILE <file_name>```
+- Should add a new file with name `file_name` to the storage.
+- If a file with the same name `file_name` already exists, the current operation fails.
+- Returns "true" if the file was added successfully, or "false" otherwise.
+
+```DELETE_FILE <file_name>```
+- Should delete the file with the `file_name`.
+- Returns "true" if the file was deleted successfully.
+- Returns "false" if the file doesn't exist.
+
+**Example:** These inputs are provided as an example of how the input data can be structured, you may select
+any of these formats or come up with your own one.
+
+#### Array
+```
+operations = [
+  ["ADD_FILE", "file_1"],
+  ["ADD_FILE", "file_1"],
+  ["ADD_FILE", "file_2"],
+  ["ADD_FILE", "dir_1/file_2"],
+  ["DELETE_FILE", "file_2"],
+  ["DELETE_FILE", "file_2"]
+]
+```
+
+#### JSON
+```
+{
+  "operations": [
+    {
+      "operation": "ADD_FILE",
+      "file_name": "file_1"
+    },
+    {
+      "operation": "ADD_FILE",
+      "file_name": "file_1"
+    },
+    {
+      "operation": "ADD_FILE",
+      "file_name": "file_2"
+    },
+    {
+      "operation": "ADD_FILE",
+      "file_name": "dir_1/file_2"
+    },
+    {
+      "operation": "DELETE_FILE",
+      "file_name": "file_2"
+    },
+    {
+      "operation": "DELETE_FILE",
+      "file_name": "file_2"
+    }
+  ]
+}
+
+```
+
+#### CSV
+```
+ADD_FILE,file_1
+ADD_FILE,file_1
+ADD_FILE,file_2
+ADD_FILE,dir_1/file_2
+DELETE_FILE,file_2
+DELETE_FILE,file_2
+```
+
+The output should be
+```
+true
+false
+true
+true
+true
+false
+```
+
+
+## Prompt for Level 2
+
+On your existing implementation, please implement a new functionality that would support the copying and pasting of a file from one location to another. This operation is defined below:
+
+_Operation_:
+
+```COPY <fromFilePath> <toDirectory>```
+- Should copy the identified file from the `fromFilePath` to the `toDirectory`. Note that the original file remains in place
+- Returns `true` if the operation was successful, `false` otherwise.
+- Returns `false` if a file with same name already exists in `toDirectory`
+- Returns `false` if `toDirectory` does not end with a slash (`/`)
+
+**Example:** These inputs are provided as an example of how the input data can be structured, you may select any of these formats or come up with your own one. Note: these operations below are in addition to those in Level 2
+
+#### Array
+```
+operations = [
+  ...
+  ["COPY", "/dir_1/file_2", "/"],
+  ["COPY", "/file_2", "/"],
+  ["COPY", "/file_3", "/dir_1/"],
+  [“COPY”, "/file_3", "/dir_3"]
+]
+```
+
+#### JSON
+```
+{
+  "operations": [
+    ...
+    {
+      "operation": "COPY",
+      "file_name": "/dir_1/file_2",
+      "to_directory": "/"
+    },
+    {
+      "operation": "COPY",
+      "file_name": "/file_2",
+      "to_directory": "/"
+    },
+    {
+      "operation": "COPY",
+      "file_name": "/file_3",
+      "to_directory": "/dir_1/"
+    },
+    {
+      "operation": "COPY",
+      "file_name": "/file_3",
+      "to_directory": "/dir_3"
+    }
+  ]
+}
+```
+
+#### CSV
+```
+...
+COPY,/dir_1/file_2,/
+COPY,/file_2,/
+COPY,/file_3,/dir_1/
+COPY,/file_3,/dir_3
+```
+
+The output should be
+```
+true
+false
+true
+true
+true
+false
+true
+false
+false
+false
+```
+
+## Prompt for Level 3
+
+On your existing implementation, please implement a new functionality that would allow a user to identify the top N directories by the number of files in them. This operation is defined below, feel free to approach the implementation in a way that is comfortable for you.
+
+_Operation:_
+
+```GET_MOST_FILES <N>```
+- Return top `N` directories in descending order of the number of files directly contained (including subfolders but not counting subfolder files), in format `[<dir_path1> (<number_of_files_1>), <dir_path_2> (<number_of_files_2>), ...]`.
+- If there is a tie, sort in alphabetical order by directory path names.
+- If there are no such directories, return `[]`.
+- If the number of directories is less than `N`, return all directories in the specified format/order.
+
+**Example:** These inputs are provided as an example of how the input data can be structured, you may select any of these formats or come up with your own one. Note: these operations below are in addition to those in Level 2
+
+#### Array
+```
+operations = [
+  ...
+  ["GET_MOST_FILES", 0],
+  [“GET_MOST_FILES”, 1],
+  ["GET_MOST_FILES", 2],
+  [“GET_MOST_FILES”, 3]
+]
+```
+
+#### JSON
+```
+{
+  "operations": [
+    ...
+    {
+      "operation": "GET_MOST_FILES",
+      "num_files": 0
+    },
+    {
+      "operation": "GET_MOST_FILES",
+      "num_files": 1
+    },
+    {
+      "operation": "GET_MOST_FILES",
+      "num_files": 2
+    },
+    {
+      "operation": "GET_MOST_FILES",
+      "num_files": 3
+    }
+  ]
+}
+```
+
+#### CSV
+```
+...
+GET_MOST_FILES,,,0
+GET_MOST_FILES,,,1
+GET_MOST_FILES,,,2
+GET_MOST_FILES,,,3
+```
+
+The output should be
+```
+true
+false
+true
+true
+true
+false
+true
+false
+false
+false
+[]
+["/ (3)"]
+["/ (3)", "/dir_1/ (1)"]
+["/ (3)", "/dir_1/ (1)"]
+```
