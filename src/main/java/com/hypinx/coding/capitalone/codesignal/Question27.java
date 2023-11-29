@@ -24,7 +24,7 @@ public class Question27 {
         for (int el : arr1) {
             String[] split = String.valueOf(el).split("");
             // If current LCP is higher than size of number to check we skip
-            if (split.length < LCP) continue;
+            if (split.length < String.valueOf(LCP).length()) continue;
             // Find the LCP for the current number
             LCP = Math.max(LCP, findLCP(split, treeArr2));
         }
@@ -33,7 +33,7 @@ public class Question27 {
         for (int el : arr2) {
             String[] split = String.valueOf(el).split("");
             // If current LCP is higher than size of number to check we skip
-            if (split.length < LCP) continue;
+            if (split.length < String.valueOf(LCP).length()) continue;
             // Find the LCP for the current number
             LCP = Math.max(LCP, findLCP(split, treeArr1));
         }
