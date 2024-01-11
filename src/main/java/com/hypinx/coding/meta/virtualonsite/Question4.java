@@ -87,12 +87,12 @@ class Node<K, V> {
     }
 }
 
-public class AbstractDataTypeWithLastImpl<K,V> {
+public class Question4<K,V> {
     private Map<K, Node<K, V>> map;
     private Node<K, V> head;
     private Node<K, V> tail;
 
-    public AbstractDataTypeWithLastImpl () {
+    public Question4 () {
         this.map = new HashMap<>();
         this.head = new Node<>(null, null);
         this.tail = new Node<>(null, null);
@@ -155,7 +155,7 @@ public class AbstractDataTypeWithLastImpl<K,V> {
     }
 
     public static void main(String[] args) {
-        AbstractDataTypeWithLastImpl<String, Integer> data = new AbstractDataTypeWithLastImpl<>();
+        Question4<String, Integer> data = new Question4<>();
         data.put("a", 1);
         data.put("b", 2);
         System.out.println(data.last()); // Output: "b"

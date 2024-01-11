@@ -25,7 +25,7 @@ package com.hypinx.coding.meta.virtualonsite;
  *
  * Time and space complexity remain the same
  */
-public class WordDictionary {
+public class Question1 {
 
     // Main method added by us to setup test cases - normally we can omit this and just implement solution
     public static void main(String[] args) {

@@ -45,7 +45,7 @@ import java.util.Map;
  Conclusion:
  * So, in this example, the code correctly identifies that the shortest substring containing all characters 'a', 'b', and 'c' is "accb."
  */
-public class ShortestSubstringContainingAlphabet {
+public class Question2 {
     public static String findShortestSubstring(String input, String alphabet) {
         // Check for edge cases
         if (input == null || input.isEmpty() || alphabet == null || alphabet.isEmpty()) {

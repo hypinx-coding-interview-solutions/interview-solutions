@@ -32,19 +32,19 @@ import java.util.ArrayList;
  * Stopping Criteria: You might need to define a stopping criterion for your traversal, such as reaching a specific target node, exploring a certain number of nodes, or traversing until there are no more unvisited nodes.
  *
  */
-class TreeNode {
+class TreeNodeQuestion3 {
     int id;
-    List<TreeNode> children;
+    List<TreeNodeQuestion3> children;
 
-    TreeNode(int id) {
+    TreeNodeQuestion3(int id) {
         this.id = id;
         this.children = new ArrayList<>();
     }
 }
 
-public class TreeUniqueIds {
+public class Question3 {
     // Function to assign unique IDs to nodes in a tree
-    public static int assignUniqueIds(TreeNode root, int nextId) {
+    public static int assignUniqueIds(TreeNodeQuestion3 root, int nextId) {
         if (root == null) {
             return nextId;
         }
@@ -53,7 +53,7 @@ public class TreeUniqueIds {
         root.id = nextId++;
 
         // Recursively assign unique IDs to children
-        for (TreeNode child : root.children) {
+        for (TreeNodeQuestion3 child : root.children) {
             nextId = assignUniqueIds(child, nextId);
         }
 
@@ -62,10 +62,10 @@ public class TreeUniqueIds {
 
     public static void main(String[] args) {
         // Create a sample tree
-        TreeNode root = new TreeNode(0);
-        TreeNode node1 = new TreeNode(0);
-        TreeNode node2 = new TreeNode(0);
-        TreeNode node3 = new TreeNode(0);
+        TreeNodeQuestion3 root = new TreeNodeQuestion3(0);
+        TreeNodeQuestion3 node1 = new TreeNodeQuestion3(0);
+        TreeNodeQuestion3 node2 = new TreeNodeQuestion3(0);
+        TreeNodeQuestion3 node3 = new TreeNodeQuestion3(0);
 
         root.children.add(node1);
         root.children.add(node2);
@@ -82,14 +82,14 @@ public class TreeUniqueIds {
     }
 
     // Function to print tree node IDs
-    public static void printTree(TreeNode root) {
+    public static void printTree(TreeNodeQuestion3 root) {
         if (root == null) {
             return;
         }
 
         System.out.println("Node ID: " + root.id);
 
-        for (TreeNode child : root.children) {
+        for (TreeNodeQuestion3 child : root.children) {
             printTree(child);
         }
     }
