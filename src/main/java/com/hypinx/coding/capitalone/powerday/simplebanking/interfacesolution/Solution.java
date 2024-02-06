@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * Explaination for approach the solution after reading Level 1
  *
- * You say the following:
+ * You say the following for LEVEL 1:
  * So because we have two operations create account and deposit, in order to solve this problem I am thinking to use an approach where I
  * define an interface. The interface will help achieve abstraction and encapsulation while defining exactly the core functionality this
  * banking system gives. I will then use a class to implement the interface. I am using this approach because in the future the way we
@@ -24,6 +24,13 @@ import java.util.Map;
  * accountId as the key and a corresponding BankAccount object. The BankAccount class will be a model class for each account object we
  * will be working with
  *
+ * You can say the following for LEVEL 2:
+ *
+ * Description given above method on line 218
+ *
+ * You can say the following for LEVEL 3:
+ *
+ * Description given above method on line 246
  */
 class Solution {
     public static void main(String[] args) {
@@ -233,7 +240,7 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
      *
      * If we have any other operation then it means we have made modifications to one or more accounts, we need to resort as our results have changed.
      *
-     * In the event we need to sort our accounts I will use the sort function and use a lambda function to first check if the activity indicator is the same between 2 accounts. If so then I will sort based on alphabetical order, otherwise sort by activity indicator value.
+     * In the event we need to sort our accounts I will use the sort function and use a lambda expression to first check if the activity indicator is the same between 2 accounts. If so then I will sort based on alphabetical order, otherwise sort by activity indicator value.
      */
     @Override
     public void topActivity(int n) {
@@ -242,7 +249,7 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
         // we loop the sorted account list to print the top activity accounts.
         n = Math.min(n, accounts.size());
 
-        if (!previousOperation.equals("top_activity")) {
+        if (previousOperation != null && !previousOperation.equals("top_activity")) {
             // Extract all BankAccounts from accounts map
             sortedAccounts = new ArrayList<>(accounts.values());
             sortedAccounts.sort(((a, b) -> {
