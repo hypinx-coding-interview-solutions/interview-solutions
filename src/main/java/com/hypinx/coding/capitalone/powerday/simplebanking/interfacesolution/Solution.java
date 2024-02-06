@@ -83,7 +83,7 @@ interface SimplifiedBanking {
     // ------------------------------------------------------------------
 
     // Level 3 ------------------------------------------------------------------
-    List<BankAccount> topActivity(int n);
+    void topActivity(int n);
     // ------------------------------------------------------------------
 }
 
@@ -96,6 +96,10 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
      * I will use a Map to hold the in memory storage. The key will be the account id and the value will be the BankAccount object
      */
     private Map<String, BankAccount> accounts;
+
+    // Level 3 -------------------------------------------------------------
+    private String previousOperation = null;
+    List<BankAccount> sortedAccounts = null;
 
     /**
      * The constructor will initialize to an empty hash map
@@ -111,18 +115,18 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
      *
      */
     public void processOperations(String[] operation) {
-        String type = operation[0];
+        String type = operation[0].toLowerCase();
         String accountId;
         double balance;
         switch (type) {
             // Level 1 ------------------------------------------------------------------
-            case "CREATE_ACCOUNT":
+            case "create_account":
                 // In the create account the accountId is in index 1 so I will assign the value here and then inside a print statement
                 // I will print the result of calling the createAccount method
                 accountId = operation[1];
                 System.out.println(this.createAccount(accountId));
                 break;
-            case "DEPOSIT":
+            case "deposit":
                 // AccountId for the deposit action is again in index 1. The balance is index 2 but it's as a String data type so I will
                 // parse it into a double to pass into the deposit method.
                 accountId = operation[1];
@@ -131,7 +135,7 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
                 break;
             // ------------------------------------------------------------------
             // Level 2 ------------------------------------------------------------------
-            case "TRANSFER":
+            case "transfer":
                 // The fromId is index 1, toId is index 2, and balance is index 3 which we need to parse to a double
                 String fromId = operation[1], toId = operation[2];
                 balance = Double.parseDouble(operation[3]);
@@ -139,27 +143,18 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
                 break;
             // ------------------------------------------------------------------
             // Level 3 ------------------------------------------------------------------
-            case "TOP_ACTIVITY":
-                // The n value is index 1 which is String so need to parse to an int. I'm also going to put a check here to make sure
-                // we lower bound n to be the size of the accounts map size incase its higher. Otherwise we could result in an index
-                // out of bounds exception
-                int n = Integer.parseInt(operation[1]);
-                // Ensure we don't go out of bounds
-                n = Math.min(n, accounts.size());
-                // The top activity method will return a list of accountId and the activity indicator. I am going to store into a list
-                // which then I will iterate over an print
-                List<BankAccount> sortedList = this.topActivity(n);
-                // Print the sorted account list
-                for (int i = 0; i < n; i++) {
-                    BankAccount currentAccount = sortedList.get(i);
-                    System.out.print(currentAccount.getAccountId() + "(" + currentAccount.getActivityIndicator() + ") ");
-                }
-                System.out.println();
+            case "top_activity":
+                // The number of accounts to get top_activity from is in index 1 and as a String. So using Integer.valueOf we can
+                // convert to an int and pass an argument
+                topActivity(Integer.valueOf(operation[1]));
                 break;
             // ------------------------------------------------------------------
             default:
                 System.out.println("Operation " + operation[0] + " not supported.");
         }
+
+        // Level 3 -----------------------------------------------------------------
+        previousOperation = type;
     }
 
     // Level 1 ------------------------------------------------------------------
@@ -234,29 +229,39 @@ class SimplifiedBankingInMemory implements SimplifiedBanking {
     // Level 3 ------------------------------------------------------------------
 
     /**
-     * The argument in the topActivity method will be an integer n, we already performed a check in the calling code so we can use it
-     * directly. For this logic we will need to go over all the accounts we have and sort based on activity indicator. So I will
-     * create a list of BankAccounts from the accounts map. Then we can use the sort method on the list and create our own comparator
-     * function.
+     * The argument in the topActivity method will be an integer n, we will lower bound this to n or the total size of the accounts map to avoid any index out of bounds issues. Then I am storing the previous operation we performed into a variable. This is because say we have 100 million accounts. If we have 2 or more back to back top_activity operations, our logic involves getting all the accounts, then performing a sort operation. This can be costly with this many accounts. If we get back to back top_activity, we can simply cache the result and reuse that to have better time complexity.
      *
-     * In the comparator function I will first check if the activity indicators are equal, if so check the accountId and return in
-     * alphabetical order. Otherwise if activity indicator is not equal, return the object with the higher value
+     * If we have any other operation then it means we have made modifications to one or more accounts, we need to resort as our results have changed.
+     *
+     * In the event we need to sort our accounts I will use the sort function and use a lambda function to first check if the activity indicator is the same between 2 accounts. If so then I will sort based on alphabetical order, otherwise sort by activity indicator value.
      */
     @Override
-    public List<BankAccount> topActivity(int n) {
-        // Extract all BankAccounts from accounts map
-        List<BankAccount> sortedList = new ArrayList<>(accounts.values());
-        sortedList.sort(((a, b) -> {
-            if (a.getActivityIndicator() == b.getActivityIndicator()) {
-                // Sort by the account id if activity indicator is equal
-                return a.getAccountId().compareTo(b.getAccountId());
-            }
+    public void topActivity(int n) {
+        // One issue we can have is we might have an n which is greater than the total number of accounts. So because I am going to
+        // lower bound this to n or the total size of the accounts. This will prevent a potential index out of bounds error when
+        // we loop the sorted account list to print the top activity accounts.
+        n = Math.min(n, accounts.size());
 
-            // Compare by activity indicator
-            return Double.compare(b.getActivityIndicator(), a.getActivityIndicator());
-        }));
+        if (!previousOperation.equals("top_activity")) {
+            // Extract all BankAccounts from accounts map
+            sortedAccounts = new ArrayList<>(accounts.values());
+            sortedAccounts.sort(((a, b) -> {
+                if (a.getActivityIndicator() == b.getActivityIndicator()) {
+                    // Sort by the account id if activity indicator is equal
+                    return a.getAccountId().compareTo(b.getAccountId());
+                }
 
-        return sortedList;
+                // Compare by activity indicator
+                return Double.compare(b.getActivityIndicator(), a.getActivityIndicator());
+            }));
+        }
+
+        // Print the sorted account list
+        for (int i = 0; i < n; i++) {
+            BankAccount currentAccount = sortedAccounts.get(i);
+            System.out.print(currentAccount.getAccountId() + "(" + currentAccount.getActivityIndicator() + ") ");
+        }
+        System.out.println();
     }
     // ------------------------------------------------------------------
 }
