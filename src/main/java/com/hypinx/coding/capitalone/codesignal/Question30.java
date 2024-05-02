@@ -3,6 +3,9 @@ package com.hypinx.coding.capitalone.codesignal;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * This solution only passes around 12/20 test cases on Codesignal
+ */
 public class Question30 {
 
     public static void main (String[] args) {
