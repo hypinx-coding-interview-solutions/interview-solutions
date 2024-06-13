@@ -6,11 +6,8 @@ import java.util.Map;
 
 /**
  * Questions to ask:
- *  - For this problem, we have accountId's given. Should we take into account security on this, like
- *  should we tokenize this data as we work with it? Or we can just store as is.
- *
- *
- *  -
+ *  - For this problem how are we storing information? Can we use something like a Map data structure since we are not
+ *  connecting to any data source?
  */
 
 public class Solution {
