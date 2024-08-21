@@ -15,7 +15,21 @@ public class TestCaseValidator {
         return true;
     }
 
-    public static boolean validateTestCase(String testCase, List<String> expected, List<String> result) {
+//    public static boolean validateTestCase(String testCase, List<String> expected, List<String> result) {
+//        if (expected.size() != result.size()) {
+//            throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.size() + " elements and result contains " + result.size() + " elements.");
+//        }
+//
+//        for (int i = 0; i < expected.size(); i++) {
+//            if (!expected.get(i).equals(result.get(i))) {
+//                throw new RuntimeException("Test case " + testCase + " failed. Expected " + convertListToString(expected) + " but result is " + convertListToString(result));
+//            }
+//        }
+//
+//        return true;
+//    }
+
+    public static boolean validateTestCase(String testCase, List expected, List result) {
         if (expected.size() != result.size()) {
             throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.size() + " elements and result contains " + result.size() + " elements.");
         }
