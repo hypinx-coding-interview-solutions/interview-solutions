@@ -1,4 +1,4 @@
-package com.hypinx.coding.chase.coding.analysis;
+package com.hypinx.coding.chase.superday.analysis;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
