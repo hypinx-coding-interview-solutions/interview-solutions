@@ -28,6 +28,69 @@ public class TestCaseValidator {
         return true;
     }
 
+    public static <T> boolean validateMultiDimensionalArrays(T[][] array1, T[][] array2) {
+        // Check if both arrays are the same object reference
+        if (array1 == array2) {
+            return true;
+        }
+
+        // Check if either array is null
+        if (array1 == null || array2 == null) {
+            return false;
+        }
+
+        // Use Arrays.deepEquals to compare the arrays
+        return Arrays.deepEquals(array1, array2);
+    }
+
+    // Overloaded method for int[][] arrays
+    public static boolean validateMultiDimensionalArrays(int[][] array1, int[][] array2) {
+        if (array1 == array2) {
+            return true;
+        }
+
+        if (array1 == null || array2 == null) {
+            return false;
+        }
+
+        // Compare dimensions
+        if (array1.length != array2.length) {
+            return false;
+        }
+
+        // Compare elements of each row
+        for (int i = 0; i < array1.length; i++) {
+            if (!Arrays.equals(array1[i], array2[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Overloaded method for other primitive types, e.g., double[][]
+    public static boolean validateMultiDimensionalArrays(double[][] array1, double[][] array2) {
+        if (array1 == array2) {
+            return true;
+        }
+
+        if (array1 == null || array2 == null) {
+            return false;
+        }
+
+        if (array1.length != array2.length) {
+            return false;
+        }
+
+        for (int i = 0; i < array1.length; i++) {
+            if (!Arrays.equals(array1[i], array2[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 //    private static String convertListToString(List<String> list) {
 //        StringBuilder builder = new StringBuilder();
 //        builder.append("[");

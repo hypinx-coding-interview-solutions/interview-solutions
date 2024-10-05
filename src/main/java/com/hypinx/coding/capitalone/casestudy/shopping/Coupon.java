@@ -1,4 +1,4 @@
-package com.hypinx.coding.capitalone.casestudy;
+package com.hypinx.coding.capitalone.casestudy.shopping;
 
 import java.time.LocalDateTime;
 
