@@ -3,10 +3,15 @@ package com.hypinx.coding.misc;
 import org.apache.logging.log4j.util.Strings;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class TestCaseValidator {
+
+    public static void validateTestCase(String testCase, boolean output) {
+        if (!output) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected true but result was false");
+        }
+    }
 
     public static boolean validateTestCase(String testCase, int expected, int result) {
         if (expected != result) {
@@ -34,6 +39,21 @@ public class TestCaseValidator {
         }
 
         return true;
+    }
+
+    public static <T> boolean validateSingleDimensionalArrays(T[] array1, T[] array2) {
+        // Check if both arrays are the same object reference
+        if (array1 == array2) {
+            return true;
+        }
+
+        // Check if either array is null
+        if (array1 == null || array2 == null) {
+            return false;
+        }
+
+        // Use Arrays.deepEquals to compare the arrays
+        return Arrays.deepEquals(array1, array2);
     }
 
     public static <T> boolean validateMultiDimensionalArrays(T[][] array1, T[][] array2) {
