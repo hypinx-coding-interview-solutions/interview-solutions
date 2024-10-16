@@ -16,6 +16,14 @@ public class TestCaseValidator {
         return true;
     }
 
+    public static boolean validateTestCase(String testCase, long expected, long result) {
+        if (expected != result) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected " + expected + " but result was " + result);
+        }
+
+        return true;
+    }
+
     public static boolean validateTestCase(String testCase, List expected, List result) {
         if (expected.size() != result.size()) {
             throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.size() + " elements and result contains " + result.size() + " elements.");
