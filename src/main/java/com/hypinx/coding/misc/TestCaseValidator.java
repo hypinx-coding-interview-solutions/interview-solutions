@@ -41,6 +41,32 @@ public class TestCaseValidator {
         return true;
     }
 
+    public static boolean validateTestCase(String testCase, int[] expected, int[] result) {
+        if (expected.length != result.length) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.length + " elements and result contains " + result.length + " elements.");
+        }
+
+        if (!Arrays.equals(result, expected)) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected " + Arrays.toString(expected) + " but result is " + Arrays.toString(result));
+        }
+
+        return true;
+    }
+
+
+    public static boolean validateTestCase(String testCase, String[] expected, String[] result) {
+        if (expected.length != result.length) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.length + " elements and result contains " + result.length + " elements.");
+        }
+
+        if (!Arrays.equals(result, expected)) {
+            Arrays.stream(result).forEach(System.out::println);
+            throw new RuntimeException("Test case " + testCase + " failed. Expected " + Arrays.toString(expected) + " but result is " + Arrays.toString(result));
+        }
+
+        return true;
+    }
+
     public static <T> boolean validateSingleDimensionalArrays(T[] array1, T[] array2) {
         // Check if both arrays are the same object reference
         if (array1 == array2) {

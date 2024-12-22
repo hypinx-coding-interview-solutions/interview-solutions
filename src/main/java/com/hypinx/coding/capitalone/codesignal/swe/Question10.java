@@ -25,6 +25,9 @@ class Question10 {
 
     }
 
+    /** Only 3/20 test cases pass, rest time out as of 12/11/24
+     *
+     */
     public static String[] solution(String[][] paragraphs, int width) {
         List<String> result = new ArrayList<String>();
 
