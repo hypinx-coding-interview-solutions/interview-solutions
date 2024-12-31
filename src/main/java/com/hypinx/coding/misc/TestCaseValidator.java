@@ -13,6 +13,12 @@ public class TestCaseValidator {
         }
     }
 
+    public static void validateTestCase(String testCase, boolean expected, boolean result) {
+        if (expected != result) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected true but result was false");
+        }
+    }
+
     public static boolean validateTestCase(String testCase, int expected, int result) {
         if (expected != result) {
             throw new RuntimeException("Test case " + testCase + " failed. Expected " + expected + " but result was " + result);

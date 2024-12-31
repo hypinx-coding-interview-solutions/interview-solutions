@@ -32,40 +32,25 @@ import java.util.ArrayList;
  * Stopping Criteria: You might need to define a stopping criterion for your traversal, such as reaching a specific target node, exploring a certain number of nodes, or traversing until there are no more unvisited nodes.
  *
  */
-class TreeNodeQuestion3 {
-    int id;
-    List<TreeNodeQuestion3> children;
 
-    TreeNodeQuestion3(int id) {
-        this.id = id;
-        this.children = new ArrayList<>();
-    }
-}
+public class Question_3_Assign_Unique_ID_To_TreeNode {
 
-public class Question3 {
-    // Function to assign unique IDs to nodes in a tree
-    public static int assignUniqueIds(TreeNodeQuestion3 root, int nextId) {
-        if (root == null) {
-            return nextId;
+    static class TreeNode {
+        int id;
+        List<TreeNode> children;
+
+        TreeNode(int id) {
+            this.id = id;
+            this.children = new ArrayList<>();
         }
-
-        // Assign the current ID and increment the next available ID
-        root.id = nextId++;
-
-        // Recursively assign unique IDs to children
-        for (TreeNodeQuestion3 child : root.children) {
-            nextId = assignUniqueIds(child, nextId);
-        }
-
-        return nextId;
     }
 
     public static void main(String[] args) {
         // Create a sample tree
-        TreeNodeQuestion3 root = new TreeNodeQuestion3(0);
-        TreeNodeQuestion3 node1 = new TreeNodeQuestion3(0);
-        TreeNodeQuestion3 node2 = new TreeNodeQuestion3(0);
-        TreeNodeQuestion3 node3 = new TreeNodeQuestion3(0);
+        TreeNode root = new TreeNode(0);
+        TreeNode node1 = new TreeNode(0);
+        TreeNode node2 = new TreeNode(0);
+        TreeNode node3 = new TreeNode(0);
 
         root.children.add(node1);
         root.children.add(node2);
@@ -81,15 +66,32 @@ public class Question3 {
         System.out.println("Next Available ID: " + nextId);
     }
 
+    // Function to assign unique IDs to nodes in a tree
+    public static int assignUniqueIds(TreeNode root, int nextId) {
+        if (root == null) {
+            return nextId;
+        }
+
+        // Assign the current ID and increment the next available ID
+        root.id = nextId++;
+
+        // Recursively assign unique IDs to children
+        for (TreeNode child : root.children) {
+            nextId = assignUniqueIds(child, nextId);
+        }
+
+        return nextId;
+    }
+
     // Function to print tree node IDs
-    public static void printTree(TreeNodeQuestion3 root) {
+    public static void printTree(TreeNode root) {
         if (root == null) {
             return;
         }
 
         System.out.println("Node ID: " + root.id);
 
-        for (TreeNodeQuestion3 child : root.children) {
+        for (TreeNode child : root.children) {
             printTree(child);
         }
     }

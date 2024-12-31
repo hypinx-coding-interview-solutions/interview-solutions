@@ -3,24 +3,6 @@ package com.hypinx.coding.meta.virtualonsite;
 import java.util.HashMap;
 import java.util.Map;
 
-// Implement the following data structure:
-interface AbstractDataTypeWithLast <K, V> {
-    /** Adds a value v to this data structure this can be accessed by get() using key k. */
-    public void put(K k, V v);
-
-    /** Returns the value associated with key k. */
-    public V get(K k);
-
-    /** Removes value for key k. */
-    public void delete(K k);
-
-    /**
-     * Returns the most recent key either added with put() or accessed
-     * with get() that hasn't been removed by delete().
-     */
-    public K last();
-}
-
 // Examples:
 /**
  AbstractDataTypeWithLast<String, Integer> data;
@@ -75,24 +57,43 @@ interface AbstractDataTypeWithLast <K, V> {
  * Space Complexity: O(N) - the space complexity is linear because it is dependent on the number of nodes we have which is N.
  */
 
-class Node<K, V> {
-    K key;
-    V value;
-    Node<K, V> prev;
-    Node<K, V> next;
+public class Question_4_Implement_Datastructure<K,V> {
 
-    Node(K key, V value) {
-        this.key = key;
-        this.value = value;
+    // Implement the following data structure:
+    interface AbstractDataTypeWithLast <K, V> {
+        /** Adds a value v to this data structure this can be accessed by get() using key k. */
+        public void put(K k, V v);
+
+        /** Returns the value associated with key k. */
+        public V get(K k);
+
+        /** Removes value for key k. */
+        public void delete(K k);
+
+        /**
+         * Returns the most recent key either added with put() or accessed
+         * with get() that hasn't been removed by delete().
+         */
+        public K last();
     }
-}
 
-public class Question4<K,V> {
+    static class Node<K, V> {
+        K key;
+        V value;
+        Node<K, V> prev;
+        Node<K, V> next;
+
+        Node(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
     private Map<K, Node<K, V>> map;
     private Node<K, V> head;
     private Node<K, V> tail;
 
-    public Question4 () {
+    public Question_4_Implement_Datastructure() {
         this.map = new HashMap<>();
         this.head = new Node<>(null, null);
         this.tail = new Node<>(null, null);
@@ -155,7 +156,7 @@ public class Question4<K,V> {
     }
 
     public static void main(String[] args) {
-        Question4<String, Integer> data = new Question4<>();
+        Question_4_Implement_Datastructure<String, Integer> data = new Question_4_Implement_Datastructure<>();
         data.put("a", 1);
         data.put("b", 2);
         System.out.println(data.last()); // Output: "b"
