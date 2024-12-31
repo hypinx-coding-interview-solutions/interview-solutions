@@ -1,6 +1,6 @@
 package com.hypinx.coding.meta.virtualonsite;
 
-public class Question_7_Remove_One_Character_To_Make_Palindrome {
+public class Question_7_Almost_Palindrome {
 
     public static void main(String[] args) {
         String s1 = "abca";
