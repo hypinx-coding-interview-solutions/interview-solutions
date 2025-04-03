@@ -15,24 +15,24 @@ public class Question_12_Character_Reprogramming {
         TestCaseValidator.validateTestCase("1", expected, result);
     }
 
-    public static int getMaxDeletions(String input) {
+    public static int getMaxDeletions(String s) {
         Stack<Character> upDown = new Stack<>();
         Stack<Character> leftRight = new Stack<>();
-        int size = input.length();
+        int size = s.length();
 
-        for(char C : input.toCharArray()) {
-            if(C == 'U' || C == 'D') {
-                if(upDown.isEmpty() || upDown.peek() == C) {
-                    upDown.push(C);
-                } else if(! upDown.isEmpty()) {
+        for(char c : s.toCharArray()) {
+            if(c == 'U' || c == 'D') {
+                if(upDown.isEmpty() || upDown.peek() == c) {
+                    upDown.push(c);
+                } else if(!upDown.isEmpty()) {
                     upDown.pop();
                 }
 
             } else {
-                if(C == 'L' || C == 'R') {
-                    if(leftRight.isEmpty() || leftRight.peek() == C) {
-                        leftRight.push(C);
-                    } else if (! leftRight.isEmpty()) {
+                if(c == 'L' || c == 'R') {
+                    if(leftRight.isEmpty() || leftRight.peek() == c) {
+                        leftRight.push(c);
+                    } else if (!leftRight.isEmpty()) {
                         leftRight.pop();
                     }
                 }

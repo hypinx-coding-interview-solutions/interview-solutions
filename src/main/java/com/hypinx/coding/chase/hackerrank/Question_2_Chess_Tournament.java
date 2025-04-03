@@ -2,10 +2,7 @@ package com.hypinx.coding.chase.hackerrank;
 
 import com.hypinx.coding.misc.TestCaseValidator;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class Question_2_Chess_Tournament {
 
@@ -25,6 +22,10 @@ public class Question_2_Chess_Tournament {
 
     }
 
+    /**
+     * This solution works but passes 11/15 test cases. Rest fail due to time complexity
+     */
+    /*
     public static int getPotentialOfWinner(List<Integer> potential, long k) {
         Queue<Integer> queue = new ArrayDeque<>(potential);
         int winner = -1;
@@ -57,4 +58,31 @@ public class Question_2_Chess_Tournament {
             if (--kCount == 0) return winner;
         }
     }
+    */
+
+    /**
+     * This solution passes all test cases
+     */
+    public static int getPotentialOfWinner(List<Integer> potential, long k) {
+        int maxPotential = Collections.max(potential); // shortcut for early return
+        if (k >= potential.size()) return maxPotential;
+
+        int currentWinner = potential.get(0);
+        int consecutiveWins = 0;
+
+        for (int i = 1; i < potential.size(); i++) {
+            int challenger = potential.get(i);
+            if (currentWinner > challenger) {
+                consecutiveWins++;
+            } else {
+                currentWinner = challenger;
+                consecutiveWins = 1;
+            }
+            if (consecutiveWins == k) return currentWinner;
+        }
+
+        // If no one hits k, maxPotential wins by default
+        return currentWinner;
+    }
+
 }
