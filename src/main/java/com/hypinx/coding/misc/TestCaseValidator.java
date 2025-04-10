@@ -4,6 +4,8 @@ import org.apache.logging.log4j.util.Strings;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class TestCaseValidator {
 
@@ -35,16 +37,25 @@ public class TestCaseValidator {
         return true;
     }
 
-    public static boolean validateTestCase(String testCase, List expected, List result) {
+    // Able to compare any List of Objects - utilizes deepEquals and stringfy methods
+    public static void validateTestCase(String testCase, List<?> expected, List<?> result) {
         if (expected.size() != result.size()) {
-            throw new RuntimeException("Test case " + testCase + " failed. Expected contains " + expected.size() + " elements and result contains " + result.size() + " elements.");
+            System.out.println("Test case " + testCase + " failed. Expected size " + expected.size() + " but received size " + result.size());
+            return;
         }
 
-        if (!expected.equals(result)) {
-            throw new RuntimeException("Test case " + testCase + " failed. Expected " + convertListToString(expected, new StringBuilder()) + " but result is " + convertListToString(result, new StringBuilder()));
+        for (int i = 0; i < expected.size(); i++) {
+            Object exp = expected.get(i);
+            Object res = result.get(i);
+
+            if (!deepEquals(exp, res)) {
+                System.out.println("Test case " + testCase + " failed at index " + i +
+                        ". Expected <" + stringify(exp) + "> but received <" + stringify(res) + ">");
+                return;
+            }
         }
 
-        return true;
+        System.out.println("Test case " + testCase + " passed.");
     }
 
     public static boolean validateTestCase(String testCase, int[] expected, int[] result) {
@@ -151,18 +162,6 @@ public class TestCaseValidator {
         return true;
     }
 
-//    private static String convertListToString(List<String> list) {
-//        StringBuilder builder = new StringBuilder();
-//        builder.append("[");
-//        for (String el : list) {
-//            builder.append(el);
-//            builder.append(", ");
-//        }
-//        builder.deleteCharAt(builder.lastIndexOf(","));
-//        builder.append("]");
-//        return builder.toString();
-//    }
-
     private static String convertListToString(List list, StringBuilder builder) {
 
         for (int i = 0; i < list.size(); i++) {
@@ -190,5 +189,59 @@ public class TestCaseValidator {
         builder.insert(0, "[");
         builder.append("]");
         return builder.toString();
+    }
+
+    private static boolean deepEquals(Object a, Object b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+
+        // Arrays
+        if (a.getClass().isArray() && b.getClass().isArray()) {
+            if (a instanceof Object[] && b instanceof Object[])
+                return Arrays.deepEquals((Object[]) a, (Object[]) b);
+            if (a instanceof int[] && b instanceof int[])
+                return Arrays.equals((int[]) a, (int[]) b);
+            // ...other primitive array checks
+            return false;
+        }
+
+        // Collections
+        if (a instanceof List && b instanceof List) {
+            List<?> listA = (List<?>) a;
+            List<?> listB = (List<?>) b;
+            if (listA.size() != listB.size()) return false;
+            for (int i = 0; i < listA.size(); i++) {
+                if (!deepEquals(listA.get(i), listB.get(i))) return false;
+            }
+            return true;
+        }
+
+        if (a instanceof Map && b instanceof Map) {
+            Map<?, ?> mapA = (Map<?, ?>) a;
+            Map<?, ?> mapB = (Map<?, ?>) b;
+            if (!mapA.keySet().equals(mapB.keySet())) return false;
+            for (Object key : mapA.keySet()) {
+                if (!deepEquals(mapA.get(key), mapB.get(key))) return false;
+            }
+            return true;
+        }
+
+        // Fallback to equals()
+        return Objects.equals(a, b);
+    }
+
+    private static String stringify(Object obj) {
+        if (obj == null) return "null";
+        if (obj.getClass().isArray()) {
+            if (obj instanceof Object[]) return Arrays.deepToString((Object[]) obj);
+            if (obj instanceof int[]) return Arrays.toString((int[]) obj);
+            if (obj instanceof long[]) return Arrays.toString((long[]) obj);
+            if (obj instanceof double[]) return Arrays.toString((double[]) obj);
+            if (obj instanceof boolean[]) return Arrays.toString((boolean[]) obj);
+            if (obj instanceof char[]) return Arrays.toString((char[]) obj);
+            if (obj instanceof byte[]) return Arrays.toString((byte[]) obj);
+            if (obj instanceof short[]) return Arrays.toString((short[]) obj);
+        }
+        return obj.toString();
     }
 }

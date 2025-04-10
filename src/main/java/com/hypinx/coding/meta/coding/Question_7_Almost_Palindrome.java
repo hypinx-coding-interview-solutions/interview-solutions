@@ -1,4 +1,4 @@
-package com.hypinx.coding.meta.virtualonsite;
+package com.hypinx.coding.meta.coding;
 
 public class Question_7_Almost_Palindrome {
 

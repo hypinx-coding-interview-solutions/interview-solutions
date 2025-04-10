@@ -1,4 +1,4 @@
-package com.hypinx.coding.meta.virtualonsite;
+package com.hypinx.coding.meta.coding;
 
 import java.util.*;
 
