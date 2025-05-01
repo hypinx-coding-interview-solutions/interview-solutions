@@ -29,6 +29,14 @@ public class TestCaseValidator {
         return true;
     }
 
+    public static boolean validateTestCase(String testCase, double expected, double result) {
+        if (expected != result) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected " + expected + " but result was " + result);
+        }
+
+        return true;
+    }
+
     public static boolean validateTestCase(String testCase, long expected, long result) {
         if (expected != result) {
             throw new RuntimeException("Test case " + testCase + " failed. Expected " + expected + " but result was " + result);
