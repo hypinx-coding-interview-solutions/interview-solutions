@@ -92,6 +92,26 @@ public class TestCaseValidator {
         return true;
     }
 
+    public static void validateTestCase(String testCase, char[][] expected, char[][] result) {
+        if (expected.length != result.length) {
+            throw new RuntimeException("Test case " + testCase + " failed. Expected rows: " + expected.length + " but got: " + result.length);
+        }
+
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i].length != result[i].length) {
+                throw new RuntimeException("Test case " + testCase + " failed at row " + i + ". Expected columns: " + expected[i].length + " but got: " + result[i].length);
+            }
+            for (int j = 0; j < expected[i].length; j++) {
+                if (expected[i][j] != result[i][j]) {
+                    throw new RuntimeException("Test case " + testCase + " failed at [" + i + "][" + j + "]. Expected: " + expected[i][j] + " but got: " + result[i][j]);
+                }
+            }
+        }
+
+        System.out.println("Test case " + testCase + " passed.");
+    }
+
+
     public static <T> boolean validateSingleDimensionalArrays(T[] array1, T[] array2) {
         // Check if both arrays are the same object reference
         if (array1 == array2) {
