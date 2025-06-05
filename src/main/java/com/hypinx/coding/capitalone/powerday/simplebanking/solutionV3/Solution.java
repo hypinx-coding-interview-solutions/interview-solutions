@@ -260,4 +260,80 @@ class SimplifiedBankingInMemory {
         return sortedList;
     }
     // ------------------------------------------------------------------
+
+    // Optional Test Class - Incase you are asked to write unit tests
+    /*
+    class SimplifiedBankingInMemoryTest {
+
+        private SimplifiedBankingInMemory bank;
+
+        @BeforeEach
+        void setup() {
+            bank = new SimplifiedBankingInMemory();
+        }
+
+        @Test
+        void testCreateAccount() {
+            assertTrue(bank.createAccount("acc1"));
+            assertFalse(bank.createAccount("acc1"));  // Duplicate
+        }
+
+        @Test
+        void testDeposit() {
+            assertEquals(-1, bank.deposit("nonexistent", 1000));
+
+            bank.createAccount("acc1");
+            assertEquals(1000, bank.deposit("acc1", 1000));
+        }
+
+        @Test
+        void testTransfer() {
+            bank.createAccount("from");
+            bank.createAccount("to");
+            bank.deposit("from", 2000);
+
+            assertEquals(-1, bank.transfer("from", "nonexistent", 100));
+            assertEquals(-1, bank.transfer("from", "from", 100));
+            assertEquals(-1, bank.transfer("from", "to", 3000));  // Insufficient
+            assertEquals(1000, bank.transfer("from", "to", 1000)); // Valid
+        }
+
+        @Test
+        void testTopActivityBasic() {
+            bank.createAccount("a1");
+            bank.createAccount("a2");
+            bank.createAccount("a3");
+
+            bank.deposit("a1", 100);
+            bank.deposit("a2", 300);
+            bank.deposit("a3", 200);
+
+            List<String> top2 = bank.topActivity(2);
+            assertEquals(List.of("a2(300)", "a3(200)"), top2);
+        }
+
+        @Test
+        void testTopActivityTiesAndSorting() {
+            bank.createAccount("zebra");
+            bank.createAccount("apple");
+            bank.createAccount("mango");
+
+            bank.deposit("zebra", 500);
+            bank.deposit("apple", 500);
+            bank.deposit("mango", 300);
+
+            List<String> top3 = bank.topActivity(3);
+            assertEquals(List.of("apple(500)", "zebra(500)", "mango(300)"), top3); // alphabet tie-break
+        }
+
+        @Test
+        void testTopActivityNMoreThanAccounts() {
+            bank.createAccount("solo");
+            bank.deposit("solo", 123);
+
+            List<String> top5 = bank.topActivity(5);
+            assertEquals(List.of("solo(123)"), top5);
+        }
+    }
+     */
 }
