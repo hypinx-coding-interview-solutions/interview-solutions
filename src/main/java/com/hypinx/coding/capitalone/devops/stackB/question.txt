@@ -1,0 +1,61 @@
+This application performs analysis on files that are dropped into an S3 bucket by an upstream process and outputs a risk rating for each
+customer seeking a loan, which is available to internal employees via a User Interface (UI).  The application is containerized, runs in
+the Amazon Elastic Container Service and is only accessible to internal corporate users.  The application consists of two containers:
+
+    1. risk-rating-application-processor
+       - Processes data provided by an upstream application to generate risk rating scores for potential and current customers by downloading
+       files from S3 and executing proprietary business logic, then making the resulting scores available via the UI
+
+    2. risk-rating-application-ui
+       - Provides a user interface for internal associates to view credit risk rating data for potential and current customers.  This UI
+       is read-only, it does not provide the ability to edit risk rating data.
+
+Access to the UI flows through an Application Load Balancer (ALB) where SSL is terminated.
+
+As the DevOps engineer on the application team, you'll be responsible for the teams deployment pipeline, monitoring and logging, incident response, and helping to manage availability of the application.
+
+Questions
+
+1.
+
+This question will focus o n the theme of Software Delivery Lifecycle Automation.
+
+The application team is currently using a CI/CD pipeline to build, test, and deploy their application on the container orchestration service. The pipeline build is executed in a container using the CI/CD deployment tool. The pipeline runs successfully but can take over an hour for end-to-end completion. The application team has observed most of the time seems to be taken up before the deployment phase begins. You've been asked to come up with recommendations on the following scenarios to help reduce the build time.
+
+- The application being deployed through the pipeline leverages multiple dependencies that need to be downloaded causing an increase in build time. What approach could help reduce the build time in this scenario?
+- Corporate security scanning software frequently identifies vulnerabilities in the Ubuntu container image used for this application's automated builds. What options are available to reduce the vulnerability footprint of the build image?
+- The Product Owner for the application team shared multiple complaints from end users indicating that recent production releases have broken functionality. The on-call engineer for the application team will usually jump in to help fix the issues but the Product Owner wants to know what additional proactive measures can be taken to reduce breaking changes. What can be done to the pipeline to help reduce customer-impacting issues resulting from production changes?
+
+2.
+
+This question will focus on application Monitoring and Logging strategies
+
+Automating monitoring and event management:
+
+- The application team wouldl ike you to build a monitoring dashboard to track the performance of the application. What key metrics would you recommend including to monitor performance?
+- What indicators of health might you use to determine the application is unhealthy and needs to failover?
+
+Log storage, aggregation, and analysis:
+
+- Once the application is deployed to Amazon's managed container orchestration service, standard logs are available on the containers on the host. How would you setup, store, and analyze the logs?
+- Engineers from the application team have complained about difficulty searching through the application logs because there are inconsistencies with the format of the log output. What would you suggest to improve the current logging strategy?
+
+3.
+
+This question will focus on Incident and Event Response
+
+Keeping in mind feedback from the Product Owner and the production issues caused by releases, the application team would like your help to improve their incident and response plan.
+
+- Assume a new associate has joined the team and is on-call for the first time. What best practices should the team have documented to allow the new associate to effectively manage production support?
+- What could help to determine the alerting thresholds to prevent alerting fatigue?
+- What automated healing strategies can be implemented if alerts fire for high resource utilization on the servers? What if alerts are triggered for high error rates downloading files for S3?
+
+4.
+
+This question will focus on Availability and Fault Tolerance
+
+The team hasn't run into a situation where they've needed to failover their application. They've always had it running in the east region.
+
+Emerging enterprise requirements mandate documented failover strategies to mitigate cloud regional outages within RTO/RPO targets. This application has an RTO of 15 minutes and an RPO of 2 hours.
+
+- What failover strategy would you recommend for a scenario where the east region went down and the application team needed to quickly failover to the west within their defined RTO and RPO?
