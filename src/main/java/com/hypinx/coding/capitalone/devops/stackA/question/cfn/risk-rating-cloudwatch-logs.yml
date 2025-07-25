@@ -1,0 +1,20 @@
+# This CloudFormation template creates necessary infrastructure in
+# AWS CloudWatch to store logs for longer term use troubleshooting
+# or for record retention requirements.
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  CloudWatchLogsGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !Join 
+        - '-'
+        - - ECSLogGroup
+          - !Ref 'AWS::StackName'
+      RetentionInDays: 14
+
+Outputs:
+  CloudWatchLogsGroupName:
+    Description: The Cloudwatch Logs Group Name
+    Value: !Ref CloudWatchLogsGroup

@@ -1,0 +1,291 @@
+# This CloudFormation template defines all the necessary infrastructure
+# to create an Elastic Container Service (ECS) cluster in AWS and deploy
+# the Risk Rating containers to the clusters. 
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  AutoscalingRoleArn:
+    Type: String
+    Description: Autoscaling Role ARN
+
+  CloudWatchLogsGroupName:
+    Type: String
+    Description: CloudWatch Logs Group Name
+
+  DesiredCapacity:
+    Type: Number
+    Default: '1'
+    Description: Number of EC2 instances to launch in your ECS cluster
+
+  EC2InstanceProfile:
+    Type: String
+    Description: EC2 Instance Profile
+
+  ECSSecurityGroup:
+    Type: String
+    Description: Security group to attach to the ECS instances
+
+  ECSTargetGroupArn:
+    Type: String
+    Description: ECS Target Group Arn
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.10xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.8xlarge
+    ConstraintDescription: Please choose a valid instance type
+
+  KeyName:
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: 'risk-rating-application-ssh-key'
+    Description: Name of an existing EC2 Key Pair to enable SSH access to the ECS instances.
+
+  LoadBalancerFullName:
+    Type: String
+    Description: Full name of the ECS cluster load balancer
+
+  MaxSize:
+    Type: Number
+    Default: '4'
+    Description: Maximum number of EC2 instances that can be launched in your ECS cluster
+
+  SubnetId:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Select at least two subnets in your selected VPC.
+
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Select a VPC that allows instances to access the Internet.
+
+Mappings:
+  AWSRegionToAMI:
+    us-east-1:
+      AMIID: ami-09bee01cc997a78a6
+    us-east-2:
+      AMIID: ami-0a9e12068cb98a01d
+    us-west-1:
+      AMIID: ami-0fa6c8d131a220017
+    us-west-2:
+      AMIID: ami-078c97cf1cefd1b38
+
+Resources:
+  ALB500sAlarmScaleUp:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '10'
+      AlarmDescription: Alarm if our ALB generates too many HTTP 500s.
+      Period: '60'
+      AlarmActions:
+        - !Ref ServiceScalingPolicy
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+        - Name: LoadBalancer
+          Value: !Ref LoadBalancerFullName
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: HTTPCode_ELB_5XX_Count
+
+  ContainerInstances:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: !FindInMap 
+        - AWSRegionToAMI
+        - !Ref 'AWS::Region'
+        - AMIID
+      SecurityGroups:
+        - !Ref ECSSecurityGroup
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      KeyName: !Ref KeyName
+      UserData: !Base64 
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -xe
+            - echo ECS_CLUSTER=
+            - !Ref ECSCluster
+            - |2
+               >> /etc/ecs/ecs.config
+            - |
+              yum install -y aws-cfn-bootstrap
+            - '/opt/aws/bin/cfn-signal -e $? '
+            - '         --stack '
+            - !Ref 'AWS::StackName'
+            - '         --resource ECSAutoScalingGroup '
+            - '         --region '
+            - !Ref 'AWS::Region'
+            - |+
+
+  ECSAutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      VPCZoneIdentifier: !Ref SubnetId
+      LaunchConfigurationName: !Ref ContainerInstances
+      MinSize: '1'
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+
+  ECSService:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: '1'
+      LoadBalancers:
+        - ContainerName: risk-rating-application-ui
+          ContainerPort: '80'
+          TargetGroupArn: !Ref ECSTargetGroupArn
+      Role: !Ref ECSServiceRole
+      TaskDefinition: !Ref RiskRatingApplicationUITaskDefinition
+
+  ECSServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: ecs-service
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+                  - 'elasticloadbalancing:DeregisterTargets'
+                  - 'elasticloadbalancing:Describe*'
+                  - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+                  - 'elasticloadbalancing:RegisterTargets'
+                  - 'ec2:Describe*'
+                  - 'ec2:AuthorizeSecurityGroupIngress'
+                Resource: '*'
+
+  RiskRatingApplicationProcessorTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: !Join 
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-risk-rating-application-processor'
+      ContainerDefinitions:
+        - Name:  risk-rating-application-processor
+          Cpu: '100'
+          Command:
+            - >-
+              /usr/local/app run
+          Essential: 'true'
+          Image: 'risk-rating-application-processor:2.4'
+          Memory: '200'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroupName
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: risk-rating-application-processor
+          MountPoints:
+            - ContainerPath: /usr/local/app
+              SourceVolume: risk-rating-application-processor-volume
+      ExecutionRoleArn:
+        Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/risk-rating-application-processor"
+      Volumes:
+        - Name: risk-rating-application-processor-volume
+
+  RiskRatingApplicationUITaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: !Join 
+        - ''
+        - - !Ref 'AWS::StackName'
+          - '-risk-rating-applicatio-ui'
+      ContainerDefinitions:
+        - Name: risk-rating-application-ui
+          Cpu: '10'
+          Essential: 'true'
+          Image: 'risk-rating-application-ui:2.4'
+          Memory: '300'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroupName
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: risk-rating-application-ui
+          PortMappings:
+            - ContainerPort: 80
+      ExecutionRoleArn:
+        Fn::Sub: "arn:aws:iam::${AWS::AccountId}:role/risk-rating-application-ui"
+      Volumes:
+        - Name: risk-rating-application-processor-volume
+
+  ServiceScalingTarget:
+    Type: 'AWS::ApplicationAutoScaling::ScalableTarget'
+    Properties:
+      MaxCapacity: !Ref MaxSize
+      MinCapacity: 1
+      ResourceId: !Join
+        - ''
+        - - service/
+          - !Ref ECSCluster
+          - /
+          - !GetAtt
+            - ECSService
+            - Name
+      RoleARN: !Ref AutoscalingRoleArn
+      ScalableDimension: 'ecs:service:DesiredCount'
+      ServiceNamespace: ecs
+
+  ServiceScalingPolicy:
+    Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
+    Properties:
+      PolicyName: AStepPolicy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ServiceScalingTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: 200
+
+Outputs:
+  ECSCluster:
+    Value: !Ref ECSCluster
+  
+  ECSService:
+    Value: !Ref ECSService
+
+  RiskRatingApplicationProcessorTaskDefinition:
+    Value: !Ref RiskRatingApplicationProcessorTaskDefinition
+
+  RiskRatingApplicationUITaskDefinition:
+    Value: !Ref RiskRatingApplicationUITaskDefinition

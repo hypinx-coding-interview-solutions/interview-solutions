@@ -1,0 +1,122 @@
+# This CloudFormation template is the "orchestrator" template that creates all of the nested/child stacks
+# that make up the ECS-based Risk Rating application.  This is the single template used by the CI/CD pipeline
+# to deploy the entire infrastructure stack.  It brings up all the child stacks (ECS cluster, Load Balancer, IAM 
+# policies, CloudWatch log resources, and security groups) in the appropriate order and is capable of tearing them
+# all down as one deployable unit.
+
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  DesiredCapacity:
+    Type: Number
+    Default: '1'
+    Description: Number of instances to launch in your ECS cluster. 
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - m5.10xlarge
+      - c5.large
+      - c5.xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+      - c5.8xlarge
+    ConstraintDescription: Please choose a valid instance type.
+
+  KeyName:
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the ECS instances.
+
+  MaxSize:
+    Type: Number
+    Default: '4'
+    Description: Maximum number of instances that can be launched in your ECS cluster.
+
+  SubnetId:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Select at least two subnets in your selected VPC.  
+
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Select a VPC that allows instances to access the Internet.
+
+Resources:
+  ECSCluster:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: RiskRatingApplicationLoadBalancer
+    Properties:
+      Parameters:
+        AutoscalingRoleArn:
+          Fn::GetAtt:
+          - RiskRatingCloudWatchLogs
+          - Outputs.CloudWatchLogsGroupName
+        DesiredCapacity: !Ref DesiredCapacity
+        EC2InstanceProfile:
+          Fn::GetAtt:
+          - RiskRatingApplicationIAM
+          - Outputs.EC2InstanceProfile
+        ECSSecurityGroup:
+          Fn::GetAtt:
+          - RiskRatingSecurityGroups
+          - Outputs.ECSSecurityGroup
+        ECSTargetGroupArn:
+          Fn::GetAtt:
+          - RiskRatingApplicationLoadBalancer
+          - Outputs.ECSTargetGroupArn
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        LoadBalancerFullName:
+          Fn::GetAtt:
+          - RiskRatingApplicationLoadBalancer
+          - Outputs.LoadBalancerFullName
+        MaxSize: !Ref MaxSize
+        SubnetId: !Ref SubnetId
+        VpcId: !Ref VpcId
+      TemplateURL: https://s3.amazonaws.com/risk-rating-infrastructure-s3-bucket-nonproduction/elastic-container-service-cluster.yml
+      TimeoutInMinutes: '25'
+
+  RiskRatingApplicationLoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: RiskRatingApplicationIAM
+    Properties:
+      Parameters:
+        ECSLoadBalancerSecurityGroup:
+          Fn::GetAtt:
+          - RiskRatingSecurityGroups
+          - Outputs.ECSLoadBalancerSecurityGroup
+        ECSSecurityGroup:
+          Fn::GetAtt:
+          - RiskRatingSecurityGroups
+          - Outputs.ECSSecurityGroup
+        SubnetId: !Ref SubnetId
+        VpcId: !Ref VpcId
+      TemplateURL: https://s3.amazonaws.com/risk-rating-infrastructure-s3-bucket-nonproduction/risk-rating-application-load-balancer.yml
+      TimeoutInMinutes: '10'
+
+  RiskRatingApplicationIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Capabilities: CAPABILITY_IAM
+      TemplateURL: https://s3.amazonaws.com/risk-rating-infrastructure-s3-bucket-nonproduction/risk-rating-application-iam.yml
+      TimeoutInMinutes: '10'
+
+  RiskRatingCloudWatchLogs:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/risk-rating-infrastructure-s3-bucket-nonproduction/risk-rating-cloudwatch-logs.yml
+      TimeoutInMinutes: '10'
+
+  RiskRatingSecurityGroups:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/risk-rating-infrastructure-s3-bucket-nonproduction/risk-rating-security-groups.yml
+      TimeoutInMinutes: '10'

@@ -1,0 +1,113 @@
+# This CloudFormation template is responsible for creating all Identity and Access Management (IAM)
+# resources for the Risk Rating infrastructure stack. IAM allows users to define permissions assigned
+# to user accounts, EC2 virtual machine instances, ECS container instances, and other infrastructure
+# in AWS for calling other AWS APIs and can be used to tightly control which actions 
+# applications, users, and infrastructure can take.
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  AutoscalingRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: service-autoscaling
+          PolicyDocument: 
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'application-autoscaling:*'
+                  - 'cloudwatch:DescribeAlarms'
+                  - 'cloudwatch:PutMetricAlarm'
+                  - 'ecs:DescribeServices'
+                  - 'ecs:UpdateService'
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2Role
+
+  EC2Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: ecs-service
+          PolicyDocument: 
+            Statement: 
+              - Effect: Allow
+                Action:
+                  - 'ecs:CreateCluster'
+                  - 'ecs:DeregisterContainerInstance'
+                  - 'ecs:DiscoverPollEndpoint'
+                  - 'ecs:Poll'
+                  - 'ecs:RegisterContainerInstance'
+                  - 'ecs:StartTelemetrySession'
+                  - 'ecs:Submit*'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+
+  RiskRatingApplicationProcessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: risk-rating-application-processor-role
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+                  - 'elasticloadbalancing:DeregisterTargets'
+                  - 'elasticloadbalancing:Describe*'
+                  - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+                  - 'elasticloadbalancing:RegisterTargets'
+                  - 'ec2:Describe*'
+                  - 'ec2:AuthorizeSecurityGroupIngress'
+                Resource: '*'
+
+Outputs:
+  AutoscalingRoleArn:
+    Description: Autoscaling Role for cluster
+    Value: !Ref AutoscalingRole
+
+  EC2InstanceProfile:
+    Description: EC2 Instance Profile Name
+    Value: !Ref EC2InstanceProfile
+
+  EC2Role:
+    Description: EC2 Role Name
+    Value: !Ref EC2Role
+
+  RiskRatingApplicationProcessorRole:
+    Description: Risk Rating Application Processor Role
+    Value: !Ref RiskRatingApplicationProcessorRole

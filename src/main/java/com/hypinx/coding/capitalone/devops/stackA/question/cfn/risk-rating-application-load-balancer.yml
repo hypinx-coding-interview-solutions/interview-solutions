@@ -1,0 +1,109 @@
+# This template creates necessary infrastructure to load balance
+# traffic to the Risk Rating application.
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Mappings:
+  AWSRegionToCertificate:
+    us-east-1:
+      CertificateArn: arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/12345678-3215-1234-8875-123456789012
+    us-east-2:
+      CertificateArn: arn:aws:acm:us-east-2:${AWS::AccountId}:certificate/12345678-1234-4321-0987-098765432122
+    us-west-1:
+      CertificateArn: arn:aws:acm:us-west-1:${AWS::AccountId}:certificate/65748339-7643-6594-1234-337256319532
+    us-west-2:
+      CertificateArn: arn:aws:acm:us-west-2:${AWS::AccountId}:certificate/87300421-1356-3223-1531-829663682352
+
+Parameters:
+  ECSLoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Description: Select a Load Balancer Security Group that allows traffic inbound from the corporate network.
+
+  ECSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Description: Select a Security Group that allows traffic between the load balancer and ECS hosts.
+
+  SubnetId:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Select at least two subnets in your selected VPC.  
+
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Select a VPC that allows access from the corporate network.
+
+Resources:
+  ECSALB:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: ECS Risk Rating Application ALB
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '30'
+      Subnets: !Ref SubnetId
+      SecurityGroups:
+        - !Ref ECSLoadBalancerSecurityGroup
+
+  ECSALBListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      Certificates: !FindInMap 
+        - AWSRegionToCertificate
+        - !Ref 'AWS::Region'
+        - CertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTargetGroup
+      LoadBalancerArn: !Ref ECSALB
+      Port: '443'
+      Protocol: HTTPS
+
+  ECSALBListenerRule:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    DependsOn: ECSALBListener
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /
+      ListenerArn: !Ref ECSALBListener
+      Priority: 1
+
+  ECSTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    DependsOn: ECSALB
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: ECSTargetGroup
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref VpcId
+
+Outputs:
+  ECSALBDNS:
+    Description: Your ALB DNS URL
+    Value: !Join 
+      - ''
+      - - !GetAtt 
+          - ECSALB
+          - DNSName
+
+  ECSTargetGroupArn:
+    Description: ECS Target Group Arn
+    Value: !Ref ECSTargetGroup
+
+  LoadBalancerFullName:
+    Description: ALB Full Name
+    Value: !Join
+      - ''
+      - - !GetAtt
+          - ECSALB
+          - LoadBalancerFullName

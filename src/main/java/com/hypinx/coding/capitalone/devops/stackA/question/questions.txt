@@ -1,0 +1,5 @@
+Question 1:
+
+Upon execution of the CloudFormation stack creation process locally via deploy-stack-nonproduction, the CloudFormation stack completes successfully however the application's UI component is not reachable at the generated Load Balancer DNS Name. The user receives a "Connection Timed Out" error message. What steps would you take to troubleshoot this error? What log sources could you examine to narrow down the issue?
+
+A.

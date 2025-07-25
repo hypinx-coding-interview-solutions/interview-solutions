@@ -1,0 +1,68 @@
+# This CloudFormation template defines all security group rules for the Risk
+# Rating application which define network ingress and egress to the cluster
+# infrastructure and application containers.
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  SubnetId:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Select at least two subnets in your selected VPC.
+
+  VpcId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Select a VPC that allows instances to access the Internet.
+
+Resources:
+  # Create load balancer security group
+  ECSLoadBalancerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: ECS Risk Rating Application Load Balancer Security Group
+      VpcId: !Ref VpcId
+
+  # Create ECS host security group
+  ECSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: ECS Host Security Group
+      VpcId: !Ref VpcId
+
+  # Allow dynamic ports between container instances
+  ECSSecurityGroupALBPorts:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref ECSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 31000
+      ToPort: 61000
+      SourceSecurityGroupId: !Ref ECSSecurityGroup
+
+  # Allow traffic from load balancer to ECS host
+  ECSSecurityGroupHTTPInbound:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref ECSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !Ref ECSLoadBalancerSecurityGroup
+
+  # Allow SSH for troubleshooting issues with clusters
+  ECSSecurityGroupSSHInbound:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref ECSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+Outputs:
+  ECSSecurityGroup:
+    Description: ECS Host Security Group
+    Value: !Ref ECSSecurityGroup
+
+  ECSLoadBalancerSecurityGroup:
+    Description: ECS Risk Rating Application Load Balancer Security Group
+    Value: !Ref ECSLoadBalancerSecurityGroup
