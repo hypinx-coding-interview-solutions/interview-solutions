@@ -27,8 +27,6 @@ public class Question73 {
         result = solution(input);
 
         TestCaseValidator.validateTestCase("3", expected, result);
-
-
     }
 
     public static int solution(int[] input) {
