@@ -1,5 +1,7 @@
 package com.hypinx.coding.meta.coding;
 
+import com.hypinx.coding.models.BinaryTreeNode;
+
 import java.util.*;
 
 public class Question_8_Vertical_Tree_Traversal {
@@ -15,19 +17,19 @@ public class Question_8_Vertical_Tree_Traversal {
         }
     }
 
-    public class VerticalOrderTraversal {
+    public static class VerticalOrderTraversal {
         // Pair is used to identify the horizontal distance of each node from the root
         static class Pair {
-            TreeNode node;
+            BinaryTreeNode node;
             int hd; // Horizontal Distance
 
-            Pair(TreeNode node, int hd) {
+            Pair(BinaryTreeNode node, int hd) {
                 this.node = node;
                 this.hd = hd;
             }
         }
 
-        public static void verticalOrder(TreeNode root) {
+        public static void verticalOrder(BinaryTreeNode root) {
             if (root == null) {
                 return;
             }
@@ -41,12 +43,12 @@ public class Question_8_Vertical_Tree_Traversal {
 
             while (!queue.isEmpty()) {
                 Pair current = queue.poll();
-                TreeNode currentNode = current.node;
+                BinaryTreeNode currentNode = current.node;
                 int hd = current.hd;
 
                 // Add the current node to the TreeMap
                 columnMap.putIfAbsent(hd, new ArrayList<>());
-                columnMap.get(hd).add(currentNode.val);
+                columnMap.get(hd).add(currentNode.value);
 
                 // Process the left and right children
                 if (currentNode.left != null) {
@@ -67,16 +69,16 @@ public class Question_8_Vertical_Tree_Traversal {
 
         public static void main(String[] args) {
             // Construct the tree
-            TreeNode root = new TreeNode(6);
-            root.left = new TreeNode(3);
-            root.right = new TreeNode(4);
-            root.left.left = new TreeNode(5);
-            root.left.left.right = new TreeNode(2);
-            root.left.left.right.left = new TreeNode(9);
-            root.left.left.right.right = new TreeNode(7);
-            root.right.left = new TreeNode(1);
-            root.right.right = new TreeNode(0);
-            root.right.right.left = new TreeNode(8);
+            BinaryTreeNode root = new BinaryTreeNode(6);
+            root.left = new BinaryTreeNode(3);
+            root.right = new BinaryTreeNode(4);
+            root.left.left = new BinaryTreeNode(5);
+            root.left.left.right = new BinaryTreeNode(2);
+            root.left.left.right.left = new BinaryTreeNode(9);
+            root.left.left.right.right = new BinaryTreeNode(7);
+            root.right.left = new BinaryTreeNode(1);
+            root.right.right = new BinaryTreeNode(0);
+            root.right.right.left = new BinaryTreeNode(8);
 
             verticalOrder(root); // Expected Output: 5 9 3 2 6 1 7 4 8 0
         }
