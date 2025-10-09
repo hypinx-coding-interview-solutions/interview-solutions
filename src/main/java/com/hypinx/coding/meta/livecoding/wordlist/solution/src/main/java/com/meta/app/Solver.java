@@ -5,6 +5,75 @@ import java.util.stream.Collectors;
 
 public class Solver {
 
+    /*
+    // Normal solution - Not optimized
+
+    public static List<String> solve(List<String> words) {
+        List<String> bestResult = new ArrayList<>();
+        backtrack(words, 0, new HashSet<>(), new ArrayList<>(), bestResult);
+        return bestResult;
+    }
+
+    private static void backtrack(
+            List<String> words,
+            int index,
+            Set<Character> usedChars,
+            List<String> currentResult,
+            List<String> bestResult) {
+
+        // Calculate the number of unique characters in the current result
+        Set<Character> currentUniqueChars = new HashSet<>();
+        for (String word : currentResult) {
+            for (char c : word.toCharArray()) {
+                currentUniqueChars.add(c);
+            }
+        }
+
+        Set<Character> bestResultUniqueChars = new HashSet<>();
+        for (String word : bestResult) {
+            for (char c : word.toCharArray()) {
+                bestResultUniqueChars.add(c);
+            }
+        }
+
+        if (currentUniqueChars.size() > bestResultUniqueChars.size()) {
+            bestResult.clear();
+            bestResult.addAll(currentResult);
+        }
+
+        // Explore further combinations
+        for (int i = index; i < words.size(); i++) {
+            String word = words.get(i);
+            Set<Character> currentWordChars = new HashSet<>();
+
+            // Check if we can add the current word
+            boolean canAdd = true;
+            for (char c : word.toCharArray()) {
+                if (usedChars.contains(c) || currentWordChars.contains(c)) {
+                    canAdd = false;
+                    break;
+                }
+                currentWordChars.add(c);
+            }
+
+            // If we can add the word
+            if (canAdd) {
+                // Choose the word
+                currentResult.add(word);
+                usedChars.addAll(currentWordChars);
+
+                // Recurse to the next index
+                backtrack(words, i + 1, usedChars, currentResult, bestResult);
+
+                // Backtrack: unchoose the word
+                currentResult.remove(currentResult.size() - 1);
+                usedChars.removeAll(currentWordChars);
+            }
+        }
+    }
+
+    */
+
     public static List<String> solve(List<String> words) {
         List<WordInfo> filteredWords = words.stream()
                 .map(WordInfo::from)
