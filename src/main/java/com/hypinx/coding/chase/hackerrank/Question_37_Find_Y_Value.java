@@ -37,4 +37,24 @@ public class Question_37_Find_Y_Value {
         }
         return new String(y);
     }
+
+    private static String findYValue_twoPass(int bits, int maxSet, String x) {
+
+        char[] y = new char[bits];
+        java.util.Arrays.fill(y, '0');
+
+        // Pass 1: where x is 1, keep y=0 (free XOR=1)
+        // (already '0', so nothing to do)
+
+        // Pass 2: spend 1s on earliest positions where x is 0
+        int remaining = maxSet;
+        for (int i = 0; i < bits && remaining > 0; i++) {
+            if (x.charAt(i) == '0') {
+                y[i] = '1';
+                remaining--;
+            }
+        }
+
+        return new String(y);
+    }
 }
