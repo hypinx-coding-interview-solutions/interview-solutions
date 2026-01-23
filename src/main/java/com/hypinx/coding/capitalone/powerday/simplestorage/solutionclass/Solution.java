@@ -96,11 +96,6 @@ class FileObject {
     // Level 1 --------------------------------------------------
     private String directory;
     private Set<String> files;
-    // Level 3 --------------------------------------------------
-    // Ok so in FileObject I'll add variables subFolders and totalFilesAndFolders and then add
-    // getter and setter method for both of these
-    private int subFolders;
-    private int totalFilesAndFolders;
 
     /**
      * We'll have a constructor with a required argument for directory and inside here
@@ -112,21 +107,6 @@ class FileObject {
     }
 
     public Set<String> getFiles() { return this.files; }
-
-    // Level 3 ---------------------------------------------------
-    public void setSubFolders(int subFolders) {
-        this.subFolders = subFolders;
-    }
-
-    public int getSubFolders() { return this.subFolders; }
-
-    public void setTotalFilesAndFolders(int totalFilesAndFolders) {
-        this.totalFilesAndFolders = totalFilesAndFolders;
-    }
-
-    public int getTotalFilesAndFolders() {
-        return this.totalFilesAndFolders;
-    }
 }
 
 /**
@@ -185,27 +165,19 @@ class SimpleFileStorage {
      * add 2 methods which we can call getDirectory and getFileName.
      */
     public boolean addFile(String file) {
-        // First we split the directory and file name from each other
-        String directory = getDirectory(file);
+        String directory = normalizeDir(getDirectory(file));
         String fileName = getFileName(file);
 
-        // We want to check if we have this directory in our storage
-        FileObject fileObject = fileStorage.getOrDefault(directory, null);
-
-        // If fileObject is null then this is the first time we are adding this directory
+        FileObject fileObject = fileStorage.get(directory);
         if (fileObject == null) {
             fileObject = new FileObject(directory);
             fileStorage.put(directory, fileObject);
         }
 
-        // Otherwise the directory exists, we check if the file is present. If so return false
-        Set<String> filesInDirectory = fileObject.getFiles();
-        if (filesInDirectory.contains(fileName)) {
+        if (!fileObject.getFiles().add(fileName)) {
             return false;
         }
 
-        // At this point the directory is present and the file does not exist, so we add it in and return true
-        filesInDirectory.add(fileName);
         return true;
     }
 
@@ -235,87 +207,79 @@ class SimpleFileStorage {
     }
 
     public boolean copy(String fromFilePath, String toDirectory) {
+        if (!toDirectory.endsWith("/")) return false;
+
         String fromDirectory = getDirectory(fromFilePath);
         String fileName = getFileName(fromFilePath);
+        String targetDir = normalizeDir(toDirectory);
 
-        // So for copy method we were to verify 2 cases: first being the toDirectory ends with a forward
-        // slash and the second that the file does not already exist in the destination. I think in
-        // addition to these 2, we also want to verify if the from directory exists and if the file
-        // we are trying to copy exists as well. And lastly the toDirectory exists. I think all 5 of
-        // these scenarios is needed to safely copy the file over.
-        // Edge Cases:
-        // 1. Verify if the fromDirectory exists
-        // 2. Verify file exists in fromDirectory
-        // 3. Verify if toDirectory does not end with /
-        // 4. Verify if toDirectory exists
-        // 5. Verify if file already exists in toDirectory
-        if (!fileStorage.containsKey(fromDirectory) ||
-            !fileStorage.get(fromDirectory).getFiles().contains(fileName) ||
-            !toDirectory.endsWith("/") ||
-            !fileStorage.containsKey(toDirectory) ||
-            fileStorage.get(toDirectory).getFiles().contains(fileName)) {
-                return false;
-        }
+        FileObject src = fileStorage.get(fromDirectory);
+        if (src == null || !src.getFiles().contains(fileName)) return false;
 
-        // Once we get past our verifications we can now safely copy the file over
-        Set<String> toDirectoryFileSet = fileStorage.get(toDirectory).getFiles();
-        toDirectoryFileSet.add(fileName);
+        FileObject dst = fileStorage.get(targetDir);
+        if (dst != null && dst.getFiles().contains(fileName)) return false;
+
+        addFile(targetDir + fileName);
         return true;
     }
 
+
     public void topNDirectories(int n) {
-        // Ok so first we have an edge case, where if we are asking for 0 then we show an empty array
-        if (n == 0) {
+        if (n <= 0) {
             System.out.println("[]");
             return;
         }
 
-        // Lower bound n based on itself or the total directories in the file storage to prevent index out of bound exception
-        n = Math.min(n, fileStorage.size());
-
-        // First loop through over all the file objects and calculate the number of subfolders
-        for (Map.Entry<String, FileObject> entry : fileStorage.entrySet()) {
-            FileObject current = entry.getValue();
-            int subFolderCount = findSubfolderCount(entry.getKey());
-            // So here I will use a helper method to find all the subfolders based on the given directory
-            // Let me implement that after
-            current.setSubFolders(subFolderCount);
-            current.setTotalFilesAndFolders(subFolderCount + current.getFiles().size());
+        // All directories we know about
+        Set<String> dirs = new HashSet<>();
+        for (String d : fileStorage.keySet()) {
+            dirs.add(normalizeDir(d));
         }
 
-        // Sort all the key-value pairs based on file count + subfolder first and return a new linked hash map to maintain order
-        LinkedHashMap<String, FileObject> sortedMapByItemSize = fileStorage.entrySet()
-                .stream()
-                .sorted((entry1, entry2) -> {
-                    // Compare by set size in descending order
-                    FileObject entryOneFileObject = entry1.getValue();
-                    FileObject entryTwoFileObject = entry2.getValue();
-                    int sizeComparison = Integer.compare(entryOneFileObject.getTotalFilesAndFolders(),
-                            entryTwoFileObject.getTotalFilesAndFolders());
-                    // If there is no tie, return the result of the compare
-                    if (sizeComparison != 0) {
-                        return sizeComparison;
-                    }
-                    return entry1.getKey().compareTo(entry2.getKey());
+        // Build immediate-subdir counts: parent -> how many direct child directories
+        Map<String, Integer> immediateChildCount = new HashMap<>();
+        for (String d : dirs) {
+            String parent = parentDir(d);
+            if (parent != null) {
+                immediateChildCount.put(parent, immediateChildCount.getOrDefault(parent, 0) + 1);
+            }
+        }
+
+        List<String> out = dirs.stream()
+                .map(dir -> {
+                    int files = fileStorage.get(normalizeDir(dir)).getFiles().size();
+                    int subdirs = immediateChildCount.getOrDefault(dir, 0);
+                    int score = files + subdirs;
+                    return new AbstractMap.SimpleEntry<>(dir, score);
                 })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        // Incase there are duplicate keys, return the first. This scenario shouldn't happen in our case
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+                .sorted((a, b) -> {
+                    int cmp = Integer.compare(b.getValue(), a.getValue()); // score desc
+                    if (cmp != 0) return cmp;
+                    return a.getKey().compareTo(b.getKey());               // dir asc
+                })
+                .limit(n)
+                .map(e -> String.format("\"%s (%d)\"", e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
 
-        int counter = 0;
-        for (Map.Entry<String, FileObject> entry : sortedMapByItemSize.entrySet()) {
-            if (counter == n) break;
-            FileObject current = entry.getValue();
-            int totalFileCount = current.getFiles().size() + current.getSubFolders();
-            System.out.print(entry.getKey() + " (" + totalFileCount + ")," + " ");
-            counter++;
-        }
-        System.out.println();
+        System.out.println("[" + String.join(", ", out) + "]");
+    }
 
+
+    private String parentDir(String dir) {
+        dir = normalizeDir(dir);
+        if (dir.equals("/")) return null;
+
+        String trimmed = dir.substring(0, dir.length() - 1); // remove trailing slash
+        int lastSlash = trimmed.lastIndexOf('/');
+        if (lastSlash <= 0) return "/";                      // "/dir_1" -> "/"
+        return normalizeDir(trimmed.substring(0, lastSlash));
+    }
+
+    private String normalizeDir(String dir) {
+        if (dir == null || dir.isEmpty() || dir.equals("/")) return "/";
+        if (!dir.startsWith("/")) dir = "/" + dir;
+        if (!dir.endsWith("/")) dir = dir + "/";
+        return dir;
     }
 
     /**
@@ -327,18 +291,10 @@ class SimpleFileStorage {
      */
     private String getDirectory(String file) {
         int lastSlashIndex = file.lastIndexOf('/');
-        if (lastSlashIndex == -1) {
-            return "/";
-        }
+        if (lastSlashIndex == -1) return "/";
 
         String directory = file.substring(0, lastSlashIndex);
-
-        if (!directory.startsWith("/")) directory = "/" + directory;
-        // So here I added a check to ensure the directory starts with a forward slash, for
-        // the 4th input we are missing it and I'm doing this for consistency since every
-        // directory should start from the root.
-
-        return directory;
+        return normalizeDir(directory);
     }
 
     /**
@@ -348,33 +304,7 @@ class SimpleFileStorage {
      */
     private String getFileName(String file) {
         int lastSlashIndex = file.lastIndexOf('/');
-        if (lastSlashIndex == -1) {
-            return file;
-        }
-
-        String fileName = file.substring(lastSlashIndex + 1);
-        return fileName;
-        // Ok so now I'll go back to our addFile method and we can use these 2 utility methods there
-    }
-
-    private int findSubfolderCount(String directory) {
-        int subfolders = 0;
-
-        for (Map.Entry<String, FileObject> entry : fileStorage.entrySet()) {
-            String currentDirectory = entry.getKey();
-
-            // To find the immediate subfolders, we want to check if the current directory starts with
-            // the entry and there are no further slash's occur after
-            // it starts with the prefix. If so, this is a nested directory this is not an
-            // immediate subfolder. So we can skip over it. And we also want to verify the current directory
-            // is not the same one
-            if (currentDirectory.startsWith(directory) &&
-                    currentDirectory.lastIndexOf('/') < directory.length() &&
-                    !currentDirectory.equals(directory)) {
-                subfolders++;
-            }
-        }
-
-        return subfolders;
+        if (lastSlashIndex == -1) return file;
+        return file.substring(lastSlashIndex + 1);
     }
 }
